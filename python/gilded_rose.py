@@ -32,13 +32,11 @@ class GildedRose(object):
                         if item.sell_in < 6:
                             if item.quality < self.MAX_QUALITY:
                                 item.quality = item.quality + 1
-            if item.name != SULFURAS:
-                item.sell_in = item.sell_in - 1
+            item.sell_in = item.sell_in - 1
             if item.sell_in < 0:
                 if item.name != BACKSTAGE:
                     if item.quality > 0:
-                        if item.name != SULFURAS:
-                            item.quality = item.quality - 1
+                        item.quality = item.quality - 1
                 else:
                     item.quality = item.quality - item.quality
 
@@ -73,10 +71,13 @@ class QualityUpdater(ABC):
     # The default maximum quality a product can reach, if set to None no enforcement is done.
     DEFAULT_MAXIMUM_QUALITY = 50
 
+    OPT_MINIMUM_QUALITY = "minimum_quality"
+    OPT_MAXIMUM_QUALITY = "maximum_quality"
+
     def __init__(self, *args, **kwargs):
-        self.minimum_quality = kwargs.get("minimum_quality", self.DEFAULT_MINIMUM_QUALITY)
+        self.minimum_quality = kwargs.get(self.OPT_MINIMUM_QUALITY, self.DEFAULT_MINIMUM_QUALITY)
         # A maximum quality that can be reached if set to None no limit is set
-        self.maximum_quality = kwargs.get("maximum_quality", self.DEFAULT_MAXIMUM_QUALITY)
+        self.maximum_quality = kwargs.get(self.OPT_MAXIMUM_QUALITY, self.DEFAULT_MAXIMUM_QUALITY)
 
     @abstractmethod
     def _get_new_quality(self, quality: int, sell_in: int) -> int:
@@ -140,7 +141,7 @@ class DefaultAgingUpdater(ItemUpdater):
     """
     QUALITY_DEGRADATION_BEFORE_SELL_DATE = 1
     QUALITY_DEGRADATION_AFTER_SELL_DATE = 2
-
+    
     def _get_new_quality(self, quality: int, sell_in: int) -> int:
         if sell_in > 0:
             return quality - self.QUALITY_DEGRADATION_BEFORE_SELL_DATE
@@ -156,6 +157,28 @@ class MaturingProductUpdater(ItemUpdater):
         return quality + 1
 
 
+class NoSellInUpdates(SellInUpdater):
+    """
+    An updater that never changes the sell_in value
+    """
+    def get_new_sell_in(self, sell_in: int) -> int:
+        return sell_in
+
+
+class LegendaryProductUpdater(NoSellInUpdates, ItemUpdater):
+    """
+    For Legendary Items no updates need to be done.
+    """
+    def __init__(self, *args, **kwargs):
+        kwargs[ItemUpdater.OPT_MAXIMUM_QUALITY] = None
+        kwargs[ItemUpdater.OPT_MINIMUM_QUALITY] = None
+        super(LegendaryProductUpdater, self).__init__(*args, **kwargs)
+
+    def _get_new_quality(self, quality: int, sell_in: int) -> int:
+        return quality
+
+
 ITEM_UPDATERS = {
-    AGED_BRIE: MaturingProductUpdater()
+    AGED_BRIE: MaturingProductUpdater(),
+    SULFURAS: LegendaryProductUpdater()
 }
