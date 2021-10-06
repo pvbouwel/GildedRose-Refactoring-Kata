@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 AGED_BRIE = "Aged Brie"
 BACKSTAGE = "Backstage passes to a TAFKAL80ETC concert"
 SULFURAS = "Sulfuras, Hand of Ragnaros"
-SPECIAL_ITEMS = [AGED_BRIE, BACKSTAGE, SULFURAS]
 
 
 class GildedRose(object):
@@ -15,30 +14,10 @@ class GildedRose(object):
 
     def update_quality(self):
         for item in self.items:
-            if item.name not in SPECIAL_ITEMS:
+            if item.name not in ITEM_UPDATERS:
                 DefaultAgingUpdater().update_item(item)
-                continue
-            elif item.name in ITEM_UPDATERS:
+            else:
                 ITEM_UPDATERS[item.name].update_item(item)
-                continue
-
-            if not (item.name != BACKSTAGE):
-                if item.quality < self.MAX_QUALITY:
-                    item.quality = item.quality + 1
-                    if item.name == BACKSTAGE:
-                        if item.sell_in < 11:
-                            if item.quality < self.MAX_QUALITY:
-                                item.quality = item.quality + 1
-                        if item.sell_in < 6:
-                            if item.quality < self.MAX_QUALITY:
-                                item.quality = item.quality + 1
-            item.sell_in = item.sell_in - 1
-            if item.sell_in < 0:
-                if item.name != BACKSTAGE:
-                    if item.quality > 0:
-                        item.quality = item.quality - 1
-                else:
-                    item.quality = item.quality - item.quality
 
 
 class Item:
@@ -178,7 +157,30 @@ class LegendaryProductUpdater(NoSellInUpdates, ItemUpdater):
         return quality
 
 
+class EventProductUpdater(ItemUpdater):
+    """
+    For events we follow the logic
+    """
+    EVENT_PASSED_VALUE = 0
+    CLOSE_TO_EVENT_THRESHOLD_IN_DAYS = 10
+    FINAL_CHANCE_THRESHOLD_IN_DAYS = 5
+    DEFAULT_INCREMENTOR = 1
+    CLOSE_INCREMENTOR = 2
+    FINAL_CHANCE_INCREMENTOR = 3
+
+    def _get_new_quality(self, quality: int, sell_in: int) -> int:
+        if sell_in == 0:
+            return self.EVENT_PASSED_VALUE
+        elif sell_in <= self.FINAL_CHANCE_THRESHOLD_IN_DAYS:
+            return quality + self.FINAL_CHANCE_INCREMENTOR
+        elif sell_in <= self.CLOSE_TO_EVENT_THRESHOLD_IN_DAYS:
+            return quality + self.CLOSE_INCREMENTOR
+        else:
+            return quality + self.DEFAULT_INCREMENTOR
+
+
 ITEM_UPDATERS = {
     AGED_BRIE: MaturingProductUpdater(),
-    SULFURAS: LegendaryProductUpdater()
+    SULFURAS: LegendaryProductUpdater(),
+    BACKSTAGE: EventProductUpdater()
 }
