@@ -18,7 +18,11 @@ class GildedRose(object):
             if item.name not in SPECIAL_ITEMS:
                 DefaultAgingUpdater().update_item(item)
                 continue
-            if not (item.name != AGED_BRIE and item.name != BACKSTAGE):
+            elif item.name in ITEM_UPDATERS:
+                ITEM_UPDATERS[item.name].update_item(item)
+                continue
+
+            if not (item.name != BACKSTAGE):
                 if item.quality < self.MAX_QUALITY:
                     item.quality = item.quality + 1
                     if item.name == BACKSTAGE:
@@ -31,16 +35,12 @@ class GildedRose(object):
             if item.name != SULFURAS:
                 item.sell_in = item.sell_in - 1
             if item.sell_in < 0:
-                if item.name != AGED_BRIE:
-                    if item.name != BACKSTAGE:
-                        if item.quality > 0:
-                            if item.name != SULFURAS:
-                                item.quality = item.quality - 1
-                    else:
-                        item.quality = item.quality - item.quality
+                if item.name != BACKSTAGE:
+                    if item.quality > 0:
+                        if item.name != SULFURAS:
+                            item.quality = item.quality - 1
                 else:
-                    if item.quality < self.MAX_QUALITY:
-                        item.quality = item.quality + 1
+                    item.quality = item.quality - item.quality
 
 
 class Item:
@@ -110,6 +110,14 @@ class QualityUpdater(ABC):
 
 class ItemUpdater(QualityUpdater, SellInUpdater, ABC):
     def update_item(self, item: Item):
+        """
+        Method that updates an item. An item is mutable and will be changed in place.
+        Args:
+            item: The original item before end of day.
+
+        Returns:
+            The item how it will be after the end of day.
+        """
         item.quality = self.get_new_quality(item.quality, item.sell_in)
         item.sell_in = self.get_new_sell_in(item.sell_in)
 
@@ -138,3 +146,16 @@ class DefaultAgingUpdater(ItemUpdater):
             return quality - self.QUALITY_DEGRADATION_BEFORE_SELL_DATE
         else:
             return quality - self.QUALITY_DEGRADATION_AFTER_SELL_DATE
+
+
+class MaturingProductUpdater(ItemUpdater):
+    """
+    For a maturing Product quality always increases.
+    """
+    def _get_new_quality(self, quality: int, sell_in: int) -> int:
+        return quality + 1
+
+
+ITEM_UPDATERS = {
+    AGED_BRIE: MaturingProductUpdater()
+}
