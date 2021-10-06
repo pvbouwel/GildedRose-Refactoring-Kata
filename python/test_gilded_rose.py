@@ -3,7 +3,7 @@ from typing import Optional
 import random
 
 import pytest
-
+import gilded_rose as gr
 from gilded_rose import Item, GildedRose
 
 
@@ -44,16 +44,19 @@ def test_quality_degrades_twice_as_fast_after_sell_in():
 
 
 def test_quality_is_never_negative_but_stays_at_0():
+    """
+    Interpreting negative as strict negative.
+    """
     assert_sell_in_quality("foo", sell_in=5, quality=1, days=1 + random.randint(1, 100), expected_quality=0)
 
 
 def test_aged_brie_increased_quality_when_it_gets_older():
-    assert_sell_in_quality("Aged Brie", sell_in=2, quality=0, days=1, expected_sell_in=1, expected_quality=1)
+    assert_sell_in_quality(gr.AGED_BRIE, sell_in=2, quality=0, days=1, expected_sell_in=1, expected_quality=1)
 
 
 def test_quality_never_more_than_50():
     nr_days = random.randint(1, 100)
-    assert_sell_in_quality("Aged Brie", sell_in=100, quality=50, days=nr_days, expected_sell_in=100-nr_days,
+    assert_sell_in_quality(gr.AGED_BRIE, sell_in=100, quality=50, days=nr_days, expected_sell_in=100-nr_days,
                            expected_quality=50)
 
 
@@ -66,34 +69,32 @@ random_int_test_data = [
 def test_sulfuras_does_not_change(sell_in: int):
     nr_days = random.randint(1, 100)
     quality = random.randint(-10, 100)
-    assert_sell_in_quality("Sulfuras, Hand of Ragnaros", sell_in=sell_in, quality=quality, days=nr_days,
+    assert_sell_in_quality(gr.SULFURAS, sell_in=sell_in, quality=quality, days=nr_days,
                            expected_sell_in=sell_in, expected_quality=quality)
-
-
-backstage = "Backstage passes to a TAFKAL80ETC concert"
 
 
 @pytest.mark.parametrize("sell_in", [i for i in range(11, 15)])
 def test_back_stage_pass_increases_by_1_if_more_than_10_days_left(sell_in):
     start_quality = random.randint(10, 20)
-    assert_sell_in_quality(backstage, sell_in=sell_in, quality=start_quality, days=1, expected_sell_in=sell_in-1,
+    assert_sell_in_quality(gr.BACKSTAGE, sell_in=sell_in, quality=start_quality, days=1, expected_sell_in=sell_in-1,
                            expected_quality=start_quality+1)
 
 
 @pytest.mark.parametrize("sell_in", [i for i in range(6, 11)])
 def test_back_stage_pass_increases_by_2_if_10_or_less_but_more_than_5_days_left(sell_in):
     start_quality = random.randint(10, 20)
-    assert_sell_in_quality(backstage, sell_in=sell_in, quality=start_quality, days=1, expected_sell_in=sell_in-1,
+    assert_sell_in_quality(gr.BACKSTAGE, sell_in=sell_in, quality=start_quality, days=1, expected_sell_in=sell_in-1,
                            expected_quality=start_quality+2)
 
 
 @pytest.mark.parametrize("sell_in", [i for i in range(1, 6)])
 def test_back_stage_pass_increases_by_2_if_10_or_less_but_more_than_5_days_left(sell_in):
     start_quality = random.randint(10, 20)
-    assert_sell_in_quality(backstage, sell_in=sell_in, quality=start_quality, days=1, expected_sell_in=sell_in-1,
+    assert_sell_in_quality(gr.BACKSTAGE, sell_in=sell_in, quality=start_quality, days=1, expected_sell_in=sell_in-1,
                            expected_quality=start_quality+3)
 
 
 def test_back_stage_pass_drops_to_zero_after_concert():
     start_quality = random.randint(10, 20)
-    assert_sell_in_quality(backstage, sell_in=0, quality=start_quality, days=1, expected_sell_in=-1, expected_quality=0)
+    assert_sell_in_quality(gr.BACKSTAGE, sell_in=0, quality=start_quality, days=1, expected_sell_in=-1,
+                           expected_quality=0)
