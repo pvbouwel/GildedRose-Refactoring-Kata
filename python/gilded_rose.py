@@ -55,6 +55,7 @@ class QualityUpdater(ABC):
     OPT_MAXIMUM_QUALITY = "maximum_quality"
 
     def __init__(self, *args, **kwargs):
+        # A minimum quality that can be reached if set to None no limit is set
         self.minimum_quality = kwargs.get(self.OPT_MINIMUM_QUALITY, self.DEFAULT_MINIMUM_QUALITY)
         # A maximum quality that can be reached if set to None no limit is set
         self.maximum_quality = kwargs.get(self.OPT_MAXIMUM_QUALITY, self.DEFAULT_MAXIMUM_QUALITY)
