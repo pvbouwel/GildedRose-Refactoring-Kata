@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 AGED_BRIE = "Aged Brie"
 BACKSTAGE = "Backstage passes to a TAFKAL80ETC concert"
 SULFURAS = "Sulfuras, Hand of Ragnaros"
+CONJURED = "Conjured Mana Cake"
 
 
 class GildedRose(object):
@@ -120,7 +121,7 @@ class DefaultAgingUpdater(ItemUpdater):
     """
     QUALITY_DEGRADATION_BEFORE_SELL_DATE = 1
     QUALITY_DEGRADATION_AFTER_SELL_DATE = 2
-    
+
     def _get_new_quality(self, quality: int, sell_in: int) -> int:
         if sell_in > 0:
             return quality - self.QUALITY_DEGRADATION_BEFORE_SELL_DATE
@@ -179,8 +180,14 @@ class EventProductUpdater(ItemUpdater):
             return quality + self.DEFAULT_INCREMENTOR
 
 
+class ConjuredProductUpdater(DefaultAgingUpdater):
+    QUALITY_DEGRADATION_BEFORE_SELL_DATE = 2
+    QUALITY_DEGRADATION_AFTER_SELL_DATE = 4
+
+
 ITEM_UPDATERS = {
     AGED_BRIE: MaturingProductUpdater(),
     SULFURAS: LegendaryProductUpdater(),
-    BACKSTAGE: EventProductUpdater()
+    BACKSTAGE: EventProductUpdater(),
+    CONJURED: ConjuredProductUpdater()
 }

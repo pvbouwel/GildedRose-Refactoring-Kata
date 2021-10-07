@@ -98,3 +98,13 @@ def test_back_stage_pass_drops_to_zero_after_concert():
     start_quality = random.randint(10, 20)
     assert_sell_in_quality(gr.BACKSTAGE, sell_in=0, quality=start_quality, days=1, expected_sell_in=-1,
                            expected_quality=0)
+
+
+def test_conjured_items_degrade_twice_as_fast_before_sell_date():
+    # Normal quality degradation before sell date is 1
+    assert_sell_in_quality(gr.CONJURED, sell_in=5, quality=4, days=1, expected_sell_in=4, expected_quality=2)
+
+
+def test_conjured_items_degrade_twice_as_fast_after_sell_date():
+    # Normal quality degradation before sell date is 2 so now 4
+    assert_sell_in_quality(gr.CONJURED, sell_in=0, quality=5, days=1, expected_sell_in=-1, expected_quality=1)
